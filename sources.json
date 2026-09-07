@@ -1,63 +1,31 @@
 {
-  "sources": [
+  "name": "My AltStore Repo",
+  "identifier": "com.myaltstore.repo",
+  "sourceURL": "https://rpd-odr.github.io/odr-alt/source.json",
+  "apps": [
     {
-      "id": "termix",
-      "type": "github-release",
-      "name": "Termix",
-      "repo": "Termix-SSH/Mobile",
-      "bundleIdentifier": "com.karmaa.termix",
-      "developerName": "Termix-SSH",
-      "subtitle": "SSH, SFTP, RDP, VNC and server management",
-      "localizedDescription": "Official Termix mobile client.",
-      "iconURL": "https://raw.githubusercontent.com/Termix-SSH/Mobile/main/assets/images/icon.png",
-      "assetPattern": "\\.ipa$"
-    },
-    {
-      "id": "eevee",
-      "type": "github-release",
-      "name": "EeveeSpotifyReincarnated",
+      "name": "EeveeSpotify",
       "repo": "SideloadLabs/EeveeSpotifyReincarnated",
       "bundleIdentifier": "com.spotify.client",
-      "developerName": "SideloadLabs / EeveeSpotify contributors",
-      "subtitle": "Spotify with EeveeSpotify",
-      "localizedDescription": "EeveeSpotify build distributed by its upstream project.",
-      "iconURL": "https://raw.githubusercontent.com/SideloadLabs/EeveeSpotifyReincarnated/main/Assets.xcassets/AppIcon.appiconset/AppIcon60x60@2x.png",
-      "assetPattern": "\\.ipa$"
+      "iconURL": "https://raw.githubusercontent.com/SideloadLabs/EeveeSpotifyReincarnated/main/icon.png",
+      "versionsLimit": 5,
+      "stableOnly": true
     },
     {
-      "id": "ytkace",
-      "type": "builder",
-      "name": "YTKACE",
-      "repo": "itzzace/ytkace",
-      "bundleIdentifier": "com.google.ios.youtube",
-      "developerName": "itzzace",
-      "subtitle": "YouTube tweak build",
-      "localizedDescription": "YTKACE with automatically built community tweaks.",
-      "iconURL": "",
-      "builder": "ytkace",
-      "provider": "decrypt_ipa",
-      "ipaAdapter": "decryptday",
-      "metadataUrl": "https://decrypt.day/app/id544007664",
-      "appStoreId": "544007664",
-      "workflow": "ytkace.yml",
-      "tweaksFile": "tweaks.json"
-    },
-    {
-      "id": "ryukgram",
-      "type": "builder",
       "name": "RyukGram",
       "repo": "faroukbmiled/RyukGram",
-      "bundleIdentifier": "com.burbn.instagram",
-      "developerName": "faroukbmiled",
-      "subtitle": "RyukGram builds published to ODR releases.",
-      "localizedDescription": "RyukGram builds published to ODR releases.",
-      "iconURL": "",
-      "builder": "ryukgram",
-      "provider": "decrypt_ipa",
-      "ipaAdapter": "decryptday",
-      "metadataUrl": "https://decrypt.day/app/id389801252",
-      "appStoreId": "389801252",
-      "workflow": "ryukgram.yml"
+      "bundleIdentifier": "org.thunderdog.telegram",
+      "iconURL": "https://raw.githubusercontent.com/faroukbmiled/RyukGram/main/icon.png",
+      "versionsLimit": 3,
+      "stableOnly": true
+    },
+    {
+      "name": "YTKace",
+      "repo": "itzzace/ytkace",
+      "bundleIdentifier": "com.google.ios.youtube",
+      "iconURL": "https://raw.githubusercontent.com/itzzace/ytkace/main/icon.png",
+      "versionsLimit": 3,
+      "stableOnly": true
     }
   ]
 }
