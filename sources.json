@@ -66,6 +66,7 @@
       "bundleIdentifier": "com.karmaa.termix",
       "developerName": "Termix-SSH",
       "subtitle": "SSH and remote server management from iOS.",
+      "iconURL": "https://raw.githubusercontent.com/Termix-SSH/Mobile/main/assets/images/icon.png",
       "assetRegex": "termix_ios\\.ipa$"
     }
   ]
