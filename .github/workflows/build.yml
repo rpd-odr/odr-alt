@@ -2,7 +2,7 @@ name: Build AltStore Repo
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '17 3 * * *'
   workflow_dispatch:
   push:
     paths:
@@ -20,7 +20,6 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,5 +45,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m '🤖 Auto-update AltStore source [skip ci]'
+          git commit -m '🤖 Daily AltStore source update [skip ci]'
           git push
