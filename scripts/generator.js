@@ -8,7 +8,7 @@ const BACKUP_PATH = path.join(ROOT, 'repo', '.last_good.json');
 const REQUEST_TIMEOUT_MS = 20000;
 const RETRIES = 3;
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const readJSON = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const writeJSON = (file, value) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -42,177 +42,147 @@ async function fetchJSON(url, attempt = 1) {
   }
 }
 
-function tagMatches(tag, filter) {
-  if (typeof filter !== 'string') return false;
-  if (filter.startsWith('regex:')) {
-    try { return new RegExp(filter.slice(6), 'i').test(tag); } catch { return false; }
+function asArray(data) {
+  if (Array.isArray(data)) return data;
+  for (const key of ['apps', 'plugins', 'data']) {
+    if (Array.isArray(data?.[key])) return data[key];
   }
-  return tag === filter || tag.replace(/^v/i, '') === filter.replace(/^v/i, '');
+  return [];
 }
 
-async function fetchAllReleases(repo) {
-  const releases = [];
-  for (let page = 1; page <= 5; page++) {
-    const data = await fetchJSON(`https://api.github.com/repos/${repo}/releases?per_page=100&page=${page}`);
-    if (!Array.isArray(data) || !data.length) break;
-    releases.push(...data);
-    if (data.length < 100) break;
+function matchesName(item, config) {
+  if (!config.matchName) return true;
+  if (config.matchNameRegex) {
+    try { return new RegExp(config.matchNameRegex, 'i').test(item?.name || ''); } catch {}
   }
-  return releases;
+  return item?.name === config.matchName || item?.displayName === config.matchName;
 }
 
-async function getTargetReleases(repo, filter) {
-  if (!filter || filter === 'latest') {
-    const latest = await fetchJSON(`https://api.github.com/repos/${repo}/releases/latest`);
-    return [latest];
-  }
-
-  const releases = await fetchAllReleases(repo);
-  const filters = Array.isArray(filter) ? filter : [filter];
-
-  // For an array, preserve filter priority: first matching tag wins.
-  for (const wantedTag of filters) {
-    const found = releases.find(release => tagMatches(String(release.tag_name || ''), wantedTag));
-    if (found) return [found];
-  }
-
-  throw new Error(`Ни один из тегов не найден: ${filters.join(', ')}`);
+function toDate(value) {
+  const time = Date.parse(value || '');
+  return Number.isFinite(time) ? time : 0;
 }
 
-function matchesName(item, app) {
-  if (!app.matchName) return true;
-  return item?.name === app.matchName || item?.displayName === app.matchName;
+function latestVersion(app) {
+  if (!Array.isArray(app?.versions) || !app.versions.length) return app;
+  return [...app.versions].sort((a, b) => toDate(b.date || b.versionDate) - toDate(a.date || a.versionDate))[0];
 }
 
-function normalizeApp(raw, config) {
-  if (!raw || typeof raw !== 'object' || !raw.downloadURL) return null;
-  const version = String(raw.version || raw.latestVersion || '0.0');
-  const date = raw.versionDate || raw.date || new Date().toISOString();
+function normalizeExternal(app, version, config) {
+  const merged = { ...app, ...version };
+  if (!merged.downloadURL) return null;
+  return {
+    name: config.outputName || app.name || config.name,
+    bundleIdentifier: config.bundleIdentifier || app.bundleIdentifier,
+    developerName: config.developerName || app.developerName || 'Community',
+    subtitle: config.subtitle || app.subtitle || '',
+    localizedDescription: config.localizedDescription || version.localizedDescription || app.localizedDescription || app.description || '',
+    iconURL: config.iconURL || app.iconURL,
+    tintColor: config.tintColor || app.tintColor,
+    version: String(version.version || app.version || '0.0.0'),
+    versionDate: version.date || version.versionDate || app.versionDate || new Date().toISOString(),
+    downloadURL: version.downloadURL,
+    size: Number(version.size || app.size) || 0,
+    minimumOSVersion: version.minOSVersion || version.minimumOSVersion || app.minOSVersion || app.minimumOSVersion
+  };
+}
+
+async function processExternal(config) {
+  console.log(`🌐 ${config.name}: ${config.sourceURL}`);
+  const data = await fetchJSON(config.sourceURL);
+  const candidates = asArray(data).filter(item => matchesName(item, config));
+  if (!candidates.length) throw new Error(`приложение ${config.matchName || config.name} не найдено`);
+
+  const apps = [];
+  for (const app of candidates) {
+    const version = latestVersion(app);
+    const normalized = normalizeExternal(app, version, config);
+    if (normalized) apps.push(normalized);
+  }
+  if (!apps.length) throw new Error('не найдено ни одной записи с downloadURL');
+  apps.sort((a, b) => toDate(b.versionDate) - toDate(a.versionDate));
+  return apps[0];
+}
+
+async function processGitHub(config) {
+  console.log(`📦 ${config.name}: ${config.repo}`);
+  const release = await fetchJSON(`https://api.github.com/repos/${config.repo}/releases/latest`);
+  if (release.draft || release.prerelease) throw new Error('latest release is draft/prerelease');
+
+  let assets = (release.assets || []).filter(asset => /\.ipa(?:\.zip)?$/i.test(asset.name || ''));
+  if (config.assetRegex) {
+    const regex = new RegExp(config.assetRegex, 'i');
+    assets = assets.filter(asset => regex.test(asset.name || ''));
+  }
+  if (!assets.length) throw new Error('в latest release нет IPA');
+
+  const asset = assets.sort((a, b) => (b.size || 0) - (a.size || 0))[0];
   return {
     name: config.name,
-    bundleIdentifier: raw.bundleIdentifier || config.bundleIdentifier,
-    developerName: config.developerName || raw.developerName || 'GitHub Community',
-    subtitle: config.subtitle || raw.subtitle || '',
-    iconURL: config.iconURL || raw.iconURL,
-    tintColor: config.tintColor || raw.tintColor,
-    version,
-    versionDate: date,
-    versionDescription: config.localizedDescription || raw.versionDescription || raw.localizedDescription || raw.description || '',
-    downloadURL: raw.downloadURL,
-    size: Number(raw.size) || 0
+    bundleIdentifier: config.bundleIdentifier,
+    developerName: config.developerName || 'GitHub Community',
+    subtitle: config.subtitle || '',
+    localizedDescription: config.localizedDescription || release.body || '',
+    iconURL: config.iconURL,
+    tintColor: config.tintColor,
+    version: String(release.tag_name || release.name || '').replace(/^v/i, '').trim(),
+    versionDate: release.published_at || release.created_at,
+    downloadURL: asset.browser_download_url,
+    size: asset.size || 0
   };
 }
 
-async function processExternal(app) {
-  console.log(`🌐 ${app.name}: ${app.sourceURL}`);
-  const data = await fetchJSON(app.sourceURL);
-  const list = Array.isArray(data) ? data : Array.isArray(data?.apps) ? data.apps : [];
-  const normalized = list
-    .filter(item => matchesName(item, app))
-    .map(x => normalizeApp(x, app))
-    .filter(Boolean);
-  if (!normalized.length) throw new Error(`приложение ${app.matchName || app.bundleIdentifier} не найдено в источнике`);
-  return normalized.sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate)).slice(0, Math.max(1, Number(app.versionsLimit) || 5));
-}
-
-async function processGitHub(app) {
-  console.log(`📦 ${app.name}: ${app.repo}`);
-  const releases = await getTargetReleases(app.repo, app.versionTagFilter);
-
-  const candidates = releases.flatMap(release => {
-    if (!release || release.draft || (app.stableOnly && release.prerelease)) return [];
-    const assets = (release.assets || []).filter(a => /\.ipa(?:\.zip)?$/i.test(a.name || ''));
-    if (!assets.length) return [];
-    const asset = assets.sort((a, b) => (b.size || 0) - (a.size || 0))[0];
-    const version = String(release.tag_name || release.name || '').replace(/^v/i, '').trim();
-    if (!version) return [];
-    return [{
-      name: app.name,
-      bundleIdentifier: app.bundleIdentifier,
-      developerName: app.developerName || 'GitHub Community',
-      subtitle: app.subtitle || '',
-      iconURL: app.iconURL,
-      tintColor: app.tintColor,
-      version,
-      versionDate: release.published_at || release.created_at,
-      versionDescription: app.localizedDescription || release.body || '',
-      downloadURL: asset.browser_download_url,
-      size: asset.size || 0
-    }];
-  });
-
-  return candidates
-    .sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate))
-    .slice(0, Math.max(1, Number(app.versionsLimit) || 5));
-}
-
-function toAltStore(apps) {
-  const latest = apps[0];
-  return {
-    name: latest.name,
-    bundleIdentifier: latest.bundleIdentifier,
-    developerName: latest.developerName,
-    subtitle: latest.subtitle,
-    version: latest.version,
-    versionDate: latest.versionDate,
-    versionDescription: latest.versionDescription.slice(0, 500),
-    downloadURL: latest.downloadURL,
-    iconURL: latest.iconURL,
-    ...(latest.tintColor ? { tintColor: latest.tintColor } : {}),
-    size: latest.size,
-    versions: apps.map(v => ({
-      version: v.version,
-      date: v.versionDate,
-      downloadURL: v.downloadURL,
-      size: v.size,
-      localizedDescription: v.versionDescription
-    }))
+function toAltStoreApp(app) {
+  const result = {
+    name: app.name,
+    bundleIdentifier: app.bundleIdentifier,
+    developerName: app.developerName,
+    subtitle: app.subtitle,
+    version: app.version,
+    versionDate: app.versionDate,
+    versionDescription: String(app.localizedDescription || '').slice(0, 5000),
+    downloadURL: app.downloadURL,
+    iconURL: app.iconURL,
+    size: app.size,
+    versions: [{
+      version: app.version,
+      date: app.versionDate,
+      downloadURL: app.downloadURL,
+      size: app.size,
+      localizedDescription: app.localizedDescription || ''
+    }]
   };
+  if (app.tintColor) result.tintColor = app.tintColor;
+  if (app.minimumOSVersion) result.minimumOSVersion = app.minimumOSVersion;
+  return result;
 }
 
 async function main() {
-  console.log('🚀 AltStore generator started');
+  console.log('🚀 ODR AltStore source rebuild started');
   const config = readJSON(CONFIG_PATH);
-  if (!config.name || !config.identifier || !config.sourceURL || !Array.isArray(config.apps) || !config.apps.length) throw new Error('Некорректный sources.json');
+  if (!config.name || !config.identifier || !config.sourceURL || !Array.isArray(config.apps)) throw new Error('Некорректный sources.json');
 
   let lastGood = null;
   try { lastGood = readJSON(BACKUP_PATH); } catch {}
 
-  const generatedApps = [];
-  for (const app of config.apps) {
+  const apps = [];
+  for (const entry of config.apps) {
     try {
-      const versions = app.sourceURL ? await processExternal(app) : await processGitHub(app);
-      if (!versions.length) throw new Error('не найдено ни одной версии с downloadURL');
-      generatedApps.push({ app, versions });
-      console.log(`  ✅ ${app.name}: ${versions.length} версий`);
+      const current = entry.repo ? await processGitHub(entry) : await processExternal(entry);
+      apps.push(toAltStoreApp(current));
+      console.log(`  ✅ ${entry.name}: ${current.version}`);
     } catch (error) {
-      console.error(`  ❌ ${app.name}: ${error.message}`);
-      const previous = lastGood?.apps?.find(x => x.name === app.name);
-      if (previous?.versions?.length) {
-        console.warn(`  ↩ ${app.name}: использую last good`);
-        generatedApps.push({
-          app,
-          versions: previous.versions.map(v => ({
-            name: app.name,
-            bundleIdentifier: previous.bundleIdentifier,
-            developerName: app.developerName || previous.developerName,
-            subtitle: app.subtitle || previous.subtitle,
-            iconURL: app.iconURL || previous.iconURL,
-            tintColor: app.tintColor || previous.tintColor,
-            version: v.version,
-            versionDate: v.date,
-            versionDescription: app.localizedDescription || v.localizedDescription || '',
-            downloadURL: v.downloadURL,
-            size: v.size || 0
-          }))
-        });
+      console.error(`  ❌ ${entry.name}: ${error.message}`);
+      const previous = lastGood?.apps?.find(app => app.name === (entry.outputName || entry.name));
+      if (previous?.downloadURL) {
+        console.warn(`  ↩ ${entry.name}: last good ${previous.version}`);
+        apps.push(previous);
       }
     }
   }
 
-  if (!generatedApps.length) throw new Error('Не удалось получить приложения и нет last good');
+  if (!apps.length) throw new Error('Не удалось собрать ни одного приложения');
 
-  const apps = generatedApps.map(x => toAltStore(x.versions));
   const source = {
     name: config.name,
     identifier: config.identifier,
@@ -230,7 +200,7 @@ async function main() {
 
   writeJSON(OUTPUT_PATH, source);
   writeJSON(BACKUP_PATH, source);
-  console.log(`🎉 Готово: ${apps.length} отдельных apps-записей с downloadURL`);
+  console.log(`🎉 Готово: ${apps.length} приложений`);
 }
 
 main().catch(error => {
