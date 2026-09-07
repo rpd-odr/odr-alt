@@ -68,22 +68,6 @@
       "subtitle": "SSH and remote server management from iOS.",
       "iconURL": "https://raw.githubusercontent.com/Termix-SSH/Mobile/main/assets/images/icon.png",
       "assetRegex": "termix_ios\\.ipa$"
-    },
-    {
-      "name": "r3tok",
-      "telegramKey": "r3tok",
-      "bundleIdentifier": "com.zhiliaoapp.musically",
-      "developerName": "r3tok",
-      "subtitle": "Modified TikTok from the original r3tok Telegram channel.",
-      "iconURL": "https://raw.githubusercontent.com/purplei2p/TikTokPlus/main/assets/icon.png"
-    },
-    {
-      "name": "Vively",
-      "telegramKey": "Vively",
-      "developerName": "r3tok",
-      "subtitle": "Music player for VKontakte.",
-      "iconURL": "https://raw.githubusercontent.com/r3pr3ss10n/Vively/main/Assets/AppIcon.png",
-      "tintColor": "7B61FF"
     }
   ]
 }
