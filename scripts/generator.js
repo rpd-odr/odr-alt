@@ -3,7 +3,8 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(ROOT, 'sources.json');
-const OUTPUT_PATH = path.join(ROOT, 'repo', 'source.json');
+const OUTPUT_PATH = path.join(ROOT, 'source.json');
+const MIRROR_OUTPUT_PATH = path.join(ROOT, 'repo', 'source.json');
 const BACKUP_PATH = path.join(ROOT, 'repo', '.last_good.json');
 const REQUEST_TIMEOUT_MS = 20000;
 const RETRIES = 3;
@@ -133,6 +134,7 @@ async function processGitHub(config) {
 }
 
 function toAltStoreApp(app) {
+  if (!/^https:\/\//i.test(app.downloadURL || '')) throw new Error(`${app.name}: отсутствует HTTPS downloadURL`);
   const result = {
     name: app.name,
     bundleIdentifier: app.bundleIdentifier,
@@ -199,6 +201,7 @@ async function main() {
   };
 
   writeJSON(OUTPUT_PATH, source);
+  writeJSON(MIRROR_OUTPUT_PATH, source);
   writeJSON(BACKUP_PATH, source);
   console.log(`🎉 Готово: ${apps.length} приложений`);
 }
