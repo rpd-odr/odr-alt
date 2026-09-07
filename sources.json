@@ -62,12 +62,11 @@
     },
     {
       "name": "Termix",
-      "repo": "Termix-SSH/Termix",
+      "repo": "Termix-SSH/Mobile",
       "bundleIdentifier": "com.karmaa.termix",
       "developerName": "Termix-SSH",
-      "subtitle": "Self-hosted SSH and remote server management.",
-      "iconURL": "https://raw.githubusercontent.com/Termix-SSH/Termix/main/assets/icon.png",
-      "assetRegex": "\\.ipa$"
+      "subtitle": "SSH and remote server management from iOS.",
+      "assetRegex": "termix_ios\\.ipa$"
     }
   ]
 }
