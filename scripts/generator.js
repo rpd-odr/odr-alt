@@ -5,169 +5,187 @@ const ROOT = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(ROOT, 'sources.json');
 const OUTPUT_PATH = path.join(ROOT, 'repo', 'source.json');
 const BACKUP_PATH = path.join(ROOT, 'repo', '.last_good.json');
-
-const USER_AGENT = 'rpd-odr/odr-alt-generator';
-const API_BASE = 'https://api.github.com';
-const MAX_PAGES = 5;
-const REQUEST_TIMEOUT_MS = 15000;
+const REQUEST_TIMEOUT_MS = 20000;
 const RETRIES = 3;
-const RETRY_BASE_MS = 1500;
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function readJSON(file) {
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
-}
-
-function writeJSON(file, value) {
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const readJSON = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+const writeJSON = (file, value) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', 'utf8');
-}
+};
 
-function isIPA(asset) {
-  return typeof asset?.name === 'string' && /\.ipa(?:\.zip)?$/i.test(asset.name);
-}
-
-function versionOf(release) {
-  return String(release.tag_name || release.name || '').replace(/^v/i, '').trim();
-}
-
-async function githubFetch(url, attempt = 1) {
+async function fetchJSON(url, attempt = 1) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
   try {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        Accept: 'application/vnd.github+json',
-        'User-Agent': USER_AGENT,
+        Accept: 'application/json, application/vnd.github+json',
+        'User-Agent': 'rpd-odr/odr-alt-generator',
         'X-GitHub-Api-Version': '2022-11-28'
       }
     });
-
     if (response.ok) return await response.json();
 
     const retryable = response.status === 429 || response.status === 403 || response.status >= 500;
     if (retryable && attempt < RETRIES) {
       const retryAfter = Number(response.headers.get('retry-after'));
-      const delay = Number.isFinite(retryAfter) && retryAfter > 0
-        ? retryAfter * 1000
-        : RETRY_BASE_MS * 2 ** (attempt - 1);
-      console.warn(`  ↻ GitHub ${response.status}, повтор через ${Math.ceil(delay / 1000)}с`);
-      await sleep(delay);
-      return githubFetch(url, attempt + 1);
+      await sleep(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 1500 * 2 ** (attempt - 1));
+      return fetchJSON(url, attempt + 1);
     }
-
-    let details = '';
-    try {
-      const body = await response.json();
-      details = body?.message ? `: ${body.message}` : '';
-    } catch {}
-    throw new Error(`GitHub API ${response.status}${details}`);
+    throw new Error(`HTTP ${response.status}`);
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function fetchAllReleases(repo) {
+function normalizeApp(raw, config) {
+  if (!raw || typeof raw !== 'object' || !raw.downloadURL) return null;
+  const version = String(raw.version || raw.latestVersion || '0.0');
+  const date = raw.versionDate || raw.date || new Date().toISOString();
+  return {
+    name: config.name,
+    bundleIdentifier: raw.bundleIdentifier || config.bundleIdentifier,
+    developerName: raw.developerName || config.developerName || 'GitHub Community',
+    subtitle: raw.subtitle || config.subtitle || '',
+    iconURL: raw.iconURL || config.iconURL,
+    version,
+    versionDate: date,
+    versionDescription: raw.versionDescription || raw.localizedDescription || raw.description || '',
+    downloadURL: raw.downloadURL,
+    size: Number(raw.size) || 0
+  };
+}
+
+async function processExternal(app) {
+  console.log(`🌐 ${app.name}: ${app.sourceURL}`);
+  const data = await fetchJSON(app.sourceURL);
+  const list = Array.isArray(data) ? data : Array.isArray(data?.apps) ? data.apps : [];
+  const matches = list.filter(item => {
+    if (app.matchName && item?.name === app.matchName) return true;
+    if (app.bundleIdentifier && item?.bundleIdentifier === app.bundleIdentifier) return true;
+    return false;
+  });
+  const normalized = matches.map(x => normalizeApp(x, app)).filter(Boolean);
+  if (!normalized.length) throw new Error(`приложение ${app.matchName || app.bundleIdentifier} не найдено в источнике`);
+  return normalized.sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate)).slice(0, Math.max(1, Number(app.versionsLimit) || 5));
+}
+
+async function processGitHub(app) {
+  console.log(`📦 ${app.name}: ${app.repo}`);
   const releases = [];
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    const url = `${API_BASE}/repos/${encodeURIComponent(repo)}/releases?per_page=100&page=${page}`;
-    const batch = await githubFetch(url);
-    if (!Array.isArray(batch) || batch.length === 0) break;
-    releases.push(...batch);
-    if (batch.length < 100) break;
-    await sleep(250);
+  for (let page = 1; page <= 5; page++) {
+    const data = await fetchJSON(`https://api.github.com/repos/${app.repo}/releases?per_page=100&page=${page}`);
+    if (!Array.isArray(data) || !data.length) break;
+    releases.push(...data);
+    if (data.length < 100) break;
   }
-  return releases;
-}
 
-function chooseIPA(release) {
-  const assets = (release.assets || []).filter(isIPA);
-  if (!assets.length) return null;
-  return assets.sort((a, b) => (b.size || 0) - (a.size || 0))[0];
-}
+  const candidates = releases.flatMap(release => {
+    if (release.draft || (app.stableOnly && release.prerelease)) return [];
+    const assets = (release.assets || []).filter(a => /\.ipa(?:\.zip)?$/i.test(a.name || ''));
+    if (!assets.length) return [];
+    const asset = assets.sort((a, b) => (b.size || 0) - (a.size || 0))[0];
+    return [{
+      name: app.name,
+      bundleIdentifier: app.bundleIdentifier,
+      developerName: app.developerName || 'GitHub Community',
+      subtitle: app.subtitle || '',
+      iconURL: app.iconURL,
+      version: String(release.tag_name || release.name || '').replace(/^v/i, ''),
+      versionDate: release.published_at || release.created_at,
+      versionDescription: release.body || '',
+      downloadURL: asset.browser_download_url,
+      size: asset.size || 0
+    }];
+  }).filter(x => x.version && x.downloadURL);
 
-function normalizeRelease(release, asset) {
-  return {
-    version: versionOf(release),
-    date: release.published_at || release.created_at,
-    downloadURL: asset.browser_download_url,
-    size: asset.size,
-    releaseNotes: release.body || ''
-  };
-}
-
-async function processApp(app) {
-  console.log(`📦 ${app.name} (${app.repo})`);
-  const releases = await fetchAllReleases(app.repo);
-
-  const candidates = releases
-    .filter(r => !r.draft)
-    .filter(r => !app.stableOnly || !r.prerelease)
-    .map(r => ({ release: r, asset: chooseIPA(r) }))
-    .filter(x => x.asset)
-    .map(x => normalizeRelease(x.release, x.asset))
-    .filter(v => v.version && v.downloadURL && v.date)
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  const unique = [];
   const seen = new Set();
-  for (const version of candidates) {
-    if (seen.has(version.version)) continue;
-    seen.add(version.version);
-    unique.push(version);
-  }
-
-  const versions = unique.slice(0, Math.max(1, Number(app.versionsLimit) || 5));
-  if (!versions.length) throw new Error('релизов с IPA не найдено');
-
-  return {
-    name: app.name,
-    bundleIdentifier: app.bundleIdentifier,
-    developerName: app.developerName || 'GitHub Community',
-    subtitle: app.subtitle || `Latest GitHub release`,
-    iconURL: app.iconURL,
-    versions
-  };
+  return candidates
+    .sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate))
+    .filter(x => !seen.has(x.version) && seen.add(x.version))
+    .slice(0, Math.max(1, Number(app.versionsLimit) || 5));
 }
 
-function appToAltStore(app) {
-  const versions = [...app.versions].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const latest = versions[0];
-
+function toAltStore(apps) {
+  const latest = apps[0];
   return {
-    name: app.name,
-    bundleIdentifier: app.bundleIdentifier,
-    developerName: app.developerName,
-    subtitle: app.subtitle,
+    name: latest.name,
+    bundleIdentifier: latest.bundleIdentifier,
+    developerName: latest.developerName,
+    subtitle: latest.subtitle,
     version: latest.version,
-    versionDate: latest.date,
-    versionDescription: latest.releaseNotes.slice(0, 200),
+    versionDate: latest.versionDate,
+    versionDescription: latest.versionDescription.slice(0, 500),
     downloadURL: latest.downloadURL,
-    iconURL: app.iconURL,
+    iconURL: latest.iconURL,
     size: latest.size,
-    versions: versions.map(v => ({
+    versions: apps.map(v => ({
       version: v.version,
-      date: v.date,
+      date: v.versionDate,
       downloadURL: v.downloadURL,
       size: v.size,
-      localizedDescription: v.releaseNotes
+      localizedDescription: v.versionDescription
     }))
   };
 }
 
-function buildSource(config, apps) {
-  const normalized = apps.map(appToAltStore);
-  return {
+async function main() {
+  console.log('🚀 AltStore generator started');
+  const config = readJSON(CONFIG_PATH);
+  if (!config.name || !config.identifier || !config.sourceURL || !Array.isArray(config.apps) || !config.apps.length) {
+    throw new Error('Некорректный sources.json');
+  }
+
+  let lastGood = null;
+  try { lastGood = readJSON(BACKUP_PATH); } catch {}
+
+  const outputApps = [];
+  for (const app of config.apps) {
+    try {
+      const versions = app.sourceURL ? await processExternal(app) : await processGitHub(app);
+      if (!versions.length) throw new Error('не найдено ни одной версии с downloadURL');
+      outputApps.push(...versions);
+      console.log(`  ✅ ${app.name}: ${versions.length} версий`);
+    } catch (error) {
+      console.error(`  ❌ ${app.name}: ${error.message}`);
+      const previous = lastGood?.apps?.find(x => x.bundleIdentifier === app.bundleIdentifier);
+      if (previous?.versions?.length) {
+        console.warn(`  ↩ ${app.name}: использую last good`);
+        outputApps.push(...previous.versions.map(v => ({
+          name: app.name,
+          bundleIdentifier: previous.bundleIdentifier,
+          developerName: previous.developerName,
+          subtitle: previous.subtitle,
+          iconURL: app.iconURL || previous.iconURL,
+          version: v.version,
+          versionDate: v.date,
+          versionDescription: v.localizedDescription || '',
+          downloadURL: v.downloadURL,
+          size: v.size || 0
+        })));
+      }
+    }
+  }
+
+  if (!outputApps.length) throw new Error('Не удалось получить приложения и нет last good');
+
+  const grouped = new Map();
+  for (const app of outputApps) {
+    const key = app.bundleIdentifier;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(app);
+  }
+
+  const apps = [...grouped.values()].map(list => list.sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate))).map(toAltStore);
+  const source = {
     name: config.name,
     identifier: config.identifier,
     sourceURL: config.sourceURL,
-    apps: normalized,
-    news: normalized.slice(0, 5).map(app => ({
+    apps,
+    news: apps.map(app => ({
       title: `${app.name} ${app.version}`,
       identifier: app.bundleIdentifier,
       caption: app.versionDescription || '',
@@ -176,87 +194,13 @@ function buildSource(config, apps) {
       notify: true
     }))
   };
-}
 
-function validateConfig(config) {
-  if (!config?.name || !config?.identifier || !config?.sourceURL) {
-    throw new Error('sources.json: нужны name, identifier и sourceURL');
-  }
-  if (!Array.isArray(config.apps) || config.apps.length === 0) {
-    throw new Error('sources.json: apps должен быть непустым массивом');
-  }
-  for (const [i, app] of config.apps.entries()) {
-    for (const field of ['name', 'repo', 'bundleIdentifier', 'iconURL']) {
-      if (!app[field]) throw new Error(`sources.json: apps[${i}].${field} отсутствует`);
-    }
-    if (!/^[^/]+\/[^/]+$/.test(app.repo)) {
-      throw new Error(`sources.json: некорректный repo у ${app.name}`);
-    }
-  }
-}
-
-async function main() {
-  console.log('🚀 AltStore generator started');
-  const config = readJSON(CONFIG_PATH);
-  validateConfig(config);
-
-  let lastGood = null;
-  try { lastGood = readJSON(BACKUP_PATH); } catch {}
-
-  const apps = [];
-  const failures = [];
-
-  for (const appConfig of config.apps) {
-    try {
-      apps.push(await processApp(appConfig));
-    } catch (error) {
-      failures.push(`${appConfig.name}: ${error.message}`);
-      console.error(`  ❌ ${appConfig.name}: ${error.message}`);
-
-      const previous = lastGood?.apps?.find(a => a.bundleIdentifier === appConfig.bundleIdentifier);
-      if (previous?.versions?.length) {
-        console.warn(`  ↩ Использую предыдущие версии для ${appConfig.name}`);
-        apps.push({
-          name: appConfig.name,
-          bundleIdentifier: appConfig.bundleIdentifier,
-          developerName: previous.developerName || appConfig.developerName || 'GitHub Community',
-          subtitle: appConfig.subtitle || previous.subtitle,
-          iconURL: appConfig.iconURL,
-          versions: previous.versions.map(v => ({
-            version: v.version,
-            date: v.date,
-            downloadURL: v.downloadURL,
-            size: v.size,
-            releaseNotes: v.localizedDescription || v.releaseNotes || ''
-          }))
-        });
-      }
-    }
-    await sleep(500);
-  }
-
-  if (!apps.length) {
-    if (lastGood) {
-      console.warn('⚠️ Все источники недоступны — восстанавливаю last good');
-      writeJSON(OUTPUT_PATH, lastGood);
-      return;
-    }
-    throw new Error('Не удалось получить ни одного приложения и нет бекапа');
-  }
-
-  const source = buildSource(config, apps);
   writeJSON(OUTPUT_PATH, source);
   writeJSON(BACKUP_PATH, source);
-
-  console.log(`✅ ${apps.length}/${config.apps.length} приложений`);
-  if (failures.length) {
-    console.warn(`⚠️ Ошибок: ${failures.length}`);
-    failures.forEach(x => console.warn(`   • ${x}`));
-  }
-  console.log(`📄 ${OUTPUT_PATH} (${(fs.statSync(OUTPUT_PATH).size / 1024).toFixed(2)} KB)`);
+  console.log(`🎉 Готово: ${apps.length} приложений с downloadURL`);
 }
 
 main().catch(error => {
   console.error(`💥 ${error.message}`);
-  process.exitCode = 1;
+  process.exit(1);
 });
