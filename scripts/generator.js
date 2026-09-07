@@ -42,17 +42,41 @@ async function fetchJSON(url, attempt = 1) {
   }
 }
 
-function matchesTag(raw, app) {
-  if (!app.versionTagFilter) return true;
-  const tag = String(raw.tag_name || raw.version || raw.latestVersion || '').trim();
-  const filters = Array.isArray(app.versionTagFilter) ? app.versionTagFilter : [app.versionTagFilter];
-  return filters.some(filter => {
-    if (typeof filter !== 'string') return false;
-    if (filter.startsWith('regex:')) {
-      try { return new RegExp(filter.slice(6), 'i').test(tag); } catch { return false; }
-    }
-    return tag === filter || tag.replace(/^v/i, '') === filter.replace(/^v/i, '');
-  });
+function tagMatches(tag, filter) {
+  if (typeof filter !== 'string') return false;
+  if (filter.startsWith('regex:')) {
+    try { return new RegExp(filter.slice(6), 'i').test(tag); } catch { return false; }
+  }
+  return tag === filter || tag.replace(/^v/i, '') === filter.replace(/^v/i, '');
+}
+
+async function fetchAllReleases(repo) {
+  const releases = [];
+  for (let page = 1; page <= 5; page++) {
+    const data = await fetchJSON(`https://api.github.com/repos/${repo}/releases?per_page=100&page=${page}`);
+    if (!Array.isArray(data) || !data.length) break;
+    releases.push(...data);
+    if (data.length < 100) break;
+  }
+  return releases;
+}
+
+async function getTargetReleases(repo, filter) {
+  if (!filter || filter === 'latest') {
+    const latest = await fetchJSON(`https://api.github.com/repos/${repo}/releases/latest`);
+    return [latest];
+  }
+
+  const releases = await fetchAllReleases(repo);
+  const filters = Array.isArray(filter) ? filter : [filter];
+
+  // For an array, preserve filter priority: first matching tag wins.
+  for (const wantedTag of filters) {
+    const found = releases.find(release => tagMatches(String(release.tag_name || ''), wantedTag));
+    if (found) return [found];
+  }
+
+  throw new Error(`Ни один из тегов не найден: ${filters.join(', ')}`);
 }
 
 function matchesName(item, app) {
@@ -85,26 +109,18 @@ async function processExternal(app) {
   const list = Array.isArray(data) ? data : Array.isArray(data?.apps) ? data.apps : [];
   const normalized = list
     .filter(item => matchesName(item, app))
-    .filter(item => matchesTag(item, app))
     .map(x => normalizeApp(x, app))
     .filter(Boolean);
-  if (!normalized.length) throw new Error(`приложение/версия ${app.matchName || app.bundleIdentifier} не найдено в источнике`);
+  if (!normalized.length) throw new Error(`приложение ${app.matchName || app.bundleIdentifier} не найдено в источнике`);
   return normalized.sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate)).slice(0, Math.max(1, Number(app.versionsLimit) || 5));
 }
 
 async function processGitHub(app) {
   console.log(`📦 ${app.name}: ${app.repo}`);
-  const releases = [];
-  for (let page = 1; page <= 5; page++) {
-    const data = await fetchJSON(`https://api.github.com/repos/${app.repo}/releases?per_page=100&page=${page}`);
-    if (!Array.isArray(data) || !data.length) break;
-    releases.push(...data);
-    if (data.length < 100) break;
-  }
+  const releases = await getTargetReleases(app.repo, app.versionTagFilter);
 
   const candidates = releases.flatMap(release => {
-    if (release.draft || (app.stableOnly && release.prerelease)) return [];
-    if (!matchesTag(release, app)) return [];
+    if (!release || release.draft || (app.stableOnly && release.prerelease)) return [];
     const assets = (release.assets || []).filter(a => /\.ipa(?:\.zip)?$/i.test(a.name || ''));
     if (!assets.length) return [];
     const asset = assets.sort((a, b) => (b.size || 0) - (a.size || 0))[0];
@@ -125,10 +141,8 @@ async function processGitHub(app) {
     }];
   });
 
-  const seen = new Set();
   return candidates
     .sort((a, b) => new Date(b.versionDate) - new Date(a.versionDate))
-    .filter(x => !seen.has(x.version) && seen.add(x.version))
     .slice(0, Math.max(1, Number(app.versionsLimit) || 5));
 }
 
@@ -198,8 +212,6 @@ async function main() {
 
   if (!generatedApps.length) throw new Error('Не удалось получить приложения и нет last good');
 
-  // One sources.json entry = one AltStore app. Do NOT group by bundleIdentifier:
-  // AltStore can contain multiple selectable mods sharing the same bundle ID.
   const apps = generatedApps.map(x => toAltStore(x.versions));
   const source = {
     name: config.name,
