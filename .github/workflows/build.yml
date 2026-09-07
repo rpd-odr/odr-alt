@@ -7,7 +7,10 @@ on:
   push:
     paths:
       - 'sources.json'
+      - 'telegram_apps.json'
       - 'scripts/generator.js'
+      - 'scripts/telegram_fetch.py'
+      - 'scripts/merge_telegram.py'
       - '.github/workflows/build.yml'
 
 permissions:
@@ -31,8 +34,40 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Telegram client
+        run: python -m pip install -r scripts/requirements.txt
+
+      - name: Fetch latest r3tok and Vively from Telegram
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
+        run: python scripts/telegram_fetch.py
+
+      - name: Ensure Telegram assets release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view telegram-assets >/dev/null 2>&1; then
+            gh release create telegram-assets --title 'Telegram upstream assets' --notes 'Automated IPA mirror for the official @r3tok Telegram channel.'
+          fi
+
+      - name: Publish Telegram assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload telegram-assets .telegram/r3tok.ipa .telegram/Vively.ipa --clobber
+
       - name: Generate source.json
         run: node scripts/generator.js
+
+      - name: Merge Telegram apps
+        run: python scripts/merge_telegram.py
 
       - name: Commit generated files
         run: |
