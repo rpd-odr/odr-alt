@@ -9,22 +9,33 @@
       "matchName": "EeveeSpotifyReincarnated",
       "bundleIdentifier": "com.spotify.client",
       "iconURL": "https://raw.githubusercontent.com/SideloadLabs/EeveeSpotifyReincarnated/main/icon.png",
+      "tintColor": "1DB954",
+      "developerName": "SideloadLabs",
+      "subtitle": "Spotify with premium-style features and additional tweaks.",
       "versionsLimit": 5
     },
     {
       "name": "RyukGram",
       "sourceURL": "https://source.ryuksign.com",
       "matchName": "RyukGram",
-      "bundleIdentifier": "com.burbn.instagram",
+      "bundleIdentifier": "com.ryuk.ryukgram",
       "iconURL": "https://raw.githubusercontent.com/faroukbmiled/RyukGram/main/icon.png",
+      "tintColor": "E1306C",
+      "developerName": "Ryuk",
+      "subtitle": "Instagram with an extensive set of privacy, download and customization features.",
       "versionsLimit": 3
     },
     {
-      "name": "YTKace",
+      "name": "YTKACE",
       "repo": "itzzace/ytkace",
       "bundleIdentifier": "com.google.ios.youtube",
       "iconURL": "https://raw.githubusercontent.com/itzzace/ytkace/main/icon.png",
-      "versionsLimit": 3,
+      "tintColor": "FF0000",
+      "developerName": "itzzace0",
+      "subtitle": "Enhanced YouTube experience.",
+      "localizedDescription": "YTKACE — enhanced YouTube build. IPA is taken directly from the matching GitHub release.",
+      "versionTagFilter": "v0.9.2",
+      "versionsLimit": 1,
       "stableOnly": true
     }
   ]
