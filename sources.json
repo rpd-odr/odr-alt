@@ -4,39 +4,70 @@
   "sourceURL": "https://rpd-odr.github.io/odr-alt/source.json",
   "apps": [
     {
+      "name": "YTKACE",
+      "sourceURL": "https://raw.githubusercontent.com/mrdrvt99/Altstore-Repository/main/apps.json",
+      "matchName": "YTKACE",
+      "bundleIdentifier": "com.google.ios.youtube",
+      "developerName": "itzzace0",
+      "subtitle": "Enhanced YouTube experience.",
+      "iconURL": "https://raw.githubusercontent.com/mrdrvt99/Altstore-Repository/main/assets/YouTube.png",
+      "tintColor": "FF0000"
+    },
+    {
       "name": "EeveeSpotify",
-      "sourceURL": "https://raw.githubusercontent.com/SideloadLabs/Eevee-Alt-Source/main/apps.json",
+      "sourceURL": "https://github.com/jaydenjcpy/Eevee-Alt-Source/raw/refs/heads/main/apps.json",
       "matchName": "EeveeSpotifyReincarnated",
       "bundleIdentifier": "com.spotify.client",
-      "iconURL": "https://raw.githubusercontent.com/SideloadLabs/EeveeSpotifyReincarnated/main/icon.png",
-      "tintColor": "1DB954",
-      "developerName": "SideloadLabs",
-      "subtitle": "Spotify with premium-style features and additional tweaks.",
-      "versionsLimit": 5
+      "developerName": "jaydenjcpy & faroukbmiled & Mod4",
+      "subtitle": "Spotify with EeveeSpotify premium-style features and additional tweaks.",
+      "iconURL": "https://files.catbox.moe/9fgova.JPG",
+      "tintColor": "1DB954"
     },
     {
       "name": "RyukGram",
-      "sourceURL": "https://source.ryuksign.com",
+      "sourceURL": "https://source.ryuksign.com/plugins",
       "matchName": "RyukGram",
-      "bundleIdentifier": "com.ryuk.ryukgram",
-      "iconURL": "https://raw.githubusercontent.com/faroukbmiled/RyukGram/main/icon.png",
-      "tintColor": "E1306C",
+      "bundleIdentifier": "com.burbn.instagram",
       "developerName": "Ryuk",
-      "subtitle": "Instagram with an extensive set of privacy, download and customization features.",
-      "versionsLimit": 3
+      "subtitle": "Instagram with privacy, download and customization features.",
+      "iconURL": "https://raw.githubusercontent.com/faroukbmiled/RyukGram/main/icon.png",
+      "tintColor": "E1306C"
     },
     {
-      "name": "YTKACE",
-      "repo": "itzzace/ytkace",
-      "bundleIdentifier": "com.google.ios.youtube",
-      "iconURL": "https://raw.githubusercontent.com/itzzace/ytkace/main/icon.png",
-      "tintColor": "FF0000",
-      "developerName": "itzzace0",
-      "subtitle": "Enhanced YouTube experience.",
-      "localizedDescription": "YTKACE — enhanced YouTube build. IPA is taken directly from the matching GitHub release.",
-      "versionTagFilter": "latest",
-      "versionsLimit": 1,
-      "stableOnly": true
+      "name": "Audiobookshelf",
+      "sourceURL": "https://raw.githubusercontent.com/binyaminyblatt/audiobookshelf-altstore-repo/refs/heads/pages/apps.json",
+      "matchName": "Audiobookshelf",
+      "bundleIdentifier": "com.audiobookshelf.app",
+      "developerName": "Audiobookshelf Team",
+      "iconURL": "https://raw.githubusercontent.com/advplyr/audiobookshelf-app/master/static/Logo.png",
+      "tintColor": "BF9000"
+    },
+    {
+      "name": "iTorrent",
+      "sourceURL": "https://xitrix.github.io/iTorrent/AltStore.json",
+      "matchName": "iTorrent",
+      "bundleIdentifier": "com.xitrix.iTorrent2",
+      "developerName": "XITRIX",
+      "subtitle": "Torrent client for iOS",
+      "iconURL": "https://raw.githubusercontent.com/XITRIX/xitrix.github.io/master/icon.png",
+      "tintColor": "F19E69"
+    },
+    {
+      "name": "OrwellVK",
+      "sourceURL": "https://github.com/dvntm0/AltStore/raw/refs/heads/main/feather.json",
+      "matchName": "OrwellVK",
+      "bundleIdentifier": "com.vk.vkclient",
+      "developerName": "dvntm",
+      "iconURL": "https://raw.githubusercontent.com/dayanch96/OrwellVK/refs/heads/main/Sileo/icon.png"
+    },
+    {
+      "name": "Termix",
+      "repo": "Termix-SSH/Termix",
+      "bundleIdentifier": "com.karmaa.termix",
+      "developerName": "Termix-SSH",
+      "subtitle": "Self-hosted SSH and remote server management.",
+      "iconURL": "https://raw.githubusercontent.com/Termix-SSH/Termix/main/assets/icon.png",
+      "assetRegex": "\\.ipa$"
     }
   ]
 }
