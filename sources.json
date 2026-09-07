@@ -1,23 +1,23 @@
 {
-  "name": "My AltStore Repo",
-  "identifier": "com.myaltstore.repo",
+  "name": "ODR AltStore Repo",
+  "identifier": "su.odr.alt",
   "sourceURL": "https://rpd-odr.github.io/odr-alt/source.json",
   "apps": [
     {
       "name": "EeveeSpotify",
-      "repo": "SideloadLabs/EeveeSpotifyReincarnated",
+      "sourceURL": "https://raw.githubusercontent.com/SideloadLabs/Eevee-Alt-Source/main/apps.json",
+      "matchName": "EeveeSpotifyReincarnated",
       "bundleIdentifier": "com.spotify.client",
       "iconURL": "https://raw.githubusercontent.com/SideloadLabs/EeveeSpotifyReincarnated/main/icon.png",
-      "versionsLimit": 5,
-      "stableOnly": true
+      "versionsLimit": 5
     },
     {
       "name": "RyukGram",
-      "repo": "faroukbmiled/RyukGram",
-      "bundleIdentifier": "org.thunderdog.telegram",
+      "sourceURL": "https://source.ryuksign.com",
+      "matchName": "RyukGram",
+      "bundleIdentifier": "com.burbn.instagram",
       "iconURL": "https://raw.githubusercontent.com/faroukbmiled/RyukGram/main/icon.png",
-      "versionsLimit": 3,
-      "stableOnly": true
+      "versionsLimit": 3
     },
     {
       "name": "YTKace",
