@@ -8,18 +8,18 @@
       "bundleIdentifier": "com.google.ios.youtube",
       "developerName": "itzzace0",
       "subtitle": "Enhanced YouTube experience.",
-      "version": "21.38.2",
-      "versionDate": "2026-09-21T23:38:44+03:00",
+      "version": "21.38.3",
+      "versionDate": "2026-09-26T16:14:53+03:00",
       "versionDescription": "Enhanced YouTube experience.",
-      "downloadURL": "https://github.com/mrdrvt99/YouProEXTRA/releases/download/ytkace-ipa2/YTKACE_21.38.2_1.0.1.ipa",
+      "downloadURL": "https://github.com/mrdrvt99/YouProEXTRA/releases/download/ytkace-ipa1/YTKACE_21.38.3_1.1.0.ipa",
       "iconURL": "https://raw.githubusercontent.com/mrdrvt99/Altstore-Repository/main/assets/YouTube.png",
-      "size": 131897280,
+      "size": 132135944,
       "versions": [
         {
-          "version": "21.38.2",
-          "date": "2026-09-21T23:38:44+03:00",
-          "downloadURL": "https://github.com/mrdrvt99/YouProEXTRA/releases/download/ytkace-ipa2/YTKACE_21.38.2_1.0.1.ipa",
-          "size": 131897280,
+          "version": "21.38.3",
+          "date": "2026-09-26T16:14:53+03:00",
+          "downloadURL": "https://github.com/mrdrvt99/YouProEXTRA/releases/download/ytkace-ipa1/YTKACE_21.38.3_1.1.0.ipa",
+          "size": 132135944,
           "localizedDescription": "Enhanced YouTube experience."
         }
       ],
@@ -163,11 +163,11 @@
   ],
   "news": [
     {
-      "title": "YTKACE 21.38.2",
+      "title": "YTKACE 21.38.3",
       "identifier": "com.google.ios.youtube",
       "caption": "Enhanced YouTube experience.",
-      "date": "2026-09-21T23:38:44+03:00",
-      "link": "https://github.com/mrdrvt99/YouProEXTRA/releases/download/ytkace-ipa2/YTKACE_21.38.2_1.0.1.ipa",
+      "date": "2026-09-26T16:14:53+03:00",
+      "link": "https://github.com/mrdrvt99/YouProEXTRA/releases/download/ytkace-ipa1/YTKACE_21.38.3_1.1.0.ipa",
       "notify": true
     },
     {
