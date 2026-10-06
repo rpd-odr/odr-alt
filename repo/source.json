@@ -30,19 +30,19 @@
       "bundleIdentifier": "com.spotify.client",
       "developerName": "jaydenjcpy & faroukbmiled & Mod4",
       "subtitle": "Spotify with EeveeSpotify premium-style features and additional tweaks.",
-      "version": "9.1.76",
-      "versionDate": "2026-08-20",
-      "versionDescription": "Spotify Version: v9.1.76, EeveeSpotify Version: 6.6.8(2) Unpatched Version, pls use this if on Altstore/Sidestore, free cert",
-      "downloadURL": "https://files.catbox.moe/1qbbn8.ipa",
+      "version": "9.1.88",
+      "versionDate": "2026-10-05",
+      "versionDescription": "Updated to Spotify v9.1.88, Full release notes on github",
+      "downloadURL": "https://files.catbox.moe/x7l9ca.ipa",
       "iconURL": "https://files.catbox.moe/9fgova.JPG",
       "size": 130000000,
       "versions": [
         {
-          "version": "9.1.76",
-          "date": "2026-08-20",
-          "downloadURL": "https://files.catbox.moe/1qbbn8.ipa",
+          "version": "9.1.88",
+          "date": "2026-10-05",
+          "downloadURL": "https://files.catbox.moe/x7l9ca.ipa",
           "size": 130000000,
-          "localizedDescription": "Spotify Version: v9.1.76, EeveeSpotify Version: 6.6.8(2) Unpatched Version, pls use this if on Altstore/Sidestore, free cert"
+          "localizedDescription": "Updated to Spotify v9.1.88, Full release notes on github"
         }
       ],
       "tintColor": "1DB954"
@@ -171,11 +171,11 @@
       "notify": true
     },
     {
-      "title": "EeveeSpotifyReincarnated 9.1.76",
+      "title": "EeveeSpotifyReincarnated 9.1.88",
       "identifier": "com.spotify.client",
-      "caption": "Spotify Version: v9.1.76, EeveeSpotify Version: 6.6.8(2) Unpatched Version, pls use this if on Altstore/Sidestore, free cert",
-      "date": "2026-08-20",
-      "link": "https://files.catbox.moe/1qbbn8.ipa",
+      "caption": "Updated to Spotify v9.1.88, Full release notes on github",
+      "date": "2026-10-05",
+      "link": "https://files.catbox.moe/x7l9ca.ipa",
       "notify": true
     },
     {
