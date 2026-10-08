@@ -30,18 +30,18 @@
       "developerName": "rpd-odr",
       "subtitle": "Jellyfin and Emby media player for Apple platforms.",
       "version": "2026.10.7",
-      "versionDate": "2026-10-08T06:21:03Z",
-      "versionDescription": "Unsigned iOS IPA built automatically from the upstream Plozz source.\n\nUpstream release: 2026.10.7\nApple marketing version: 2026.9.25\nBuild: 52\n\n- iOS/iPadOS build only\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n",
+      "versionDate": "2026-10-08T09:41:09Z",
+      "versionDescription": "Unsigned standalone iOS IPA built automatically from upstream Plozz.\nUpstream release: 2026.10.7\nApple marketing version: 2026.9.25\nBuild: 52\n- iOS/iPadOS build only\n- Production iCloud / Push / Associated Domains capabilities are stripped\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n",
       "downloadURL": "https://github.com/rpd-odr/Plozz/releases/download/v2026.10.7/Plozz-2026.10.7.ipa",
       "iconURL": "https://raw.githubusercontent.com/rpd-odr/Plozz/main/App/PlozziOS/Assets.xcassets/AppIcon.appiconset/PlozzAppIcon.png",
-      "size": 37875103,
+      "size": 38047237,
       "versions": [
         {
           "version": "2026.10.7",
-          "date": "2026-10-08T06:21:03Z",
+          "date": "2026-10-08T09:41:09Z",
           "downloadURL": "https://github.com/rpd-odr/Plozz/releases/download/v2026.10.7/Plozz-2026.10.7.ipa",
-          "size": 37875103,
-          "localizedDescription": "Unsigned iOS IPA built automatically from the upstream Plozz source.\n\nUpstream release: 2026.10.7\nApple marketing version: 2026.9.25\nBuild: 52\n\n- iOS/iPadOS build only\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n"
+          "size": 38047237,
+          "localizedDescription": "Unsigned standalone iOS IPA built automatically from upstream Plozz.\nUpstream release: 2026.10.7\nApple marketing version: 2026.9.25\nBuild: 52\n- iOS/iPadOS build only\n- Production iCloud / Push / Associated Domains capabilities are stripped\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n"
         }
       ]
     },
@@ -79,8 +79,8 @@
     {
       "title": "Plozz 2026.10.7",
       "identifier": "com.thatcube.Plozz",
-      "caption": "Unsigned iOS IPA built automatically from the upstream Plozz source.\n\nUpstream release: 2026.10.7\nApple marketing version: 2026.9.25\nBuild: 52\n\n- iOS/iPadOS build only\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n",
-      "date": "2026-10-08T06:21:03Z",
+      "caption": "Unsigned standalone iOS IPA built automatically from upstream Plozz.\nUpstream release: 2026.10.7\nApple marketing version: 2026.9.25\nBuild: 52\n- iOS/iPadOS build only\n- Production iCloud / Push / Associated Domains capabilities are stripped\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n",
+      "date": "2026-10-08T09:41:09Z",
       "link": "https://github.com/rpd-odr/Plozz/releases/download/v2026.10.7/Plozz-2026.10.7.ipa",
       "notify": true
     },
