@@ -11,6 +11,24 @@
       "subtitle": "Cross-platform video player with Dolby Vision, HDR10+, and all audio codecs.",
       "iconURL": "https://raw.githubusercontent.com/rpd-odr/DreamPlayer/main/assets/app_icon_dark.png",
       "assetRegex": "DreamPlayer-.*\\.ipa$"
+    },
+    {
+      "name": "Plozz",
+      "repo": "rpd-odr/Plozz",
+      "bundleIdentifier": "com.thatcube.Plozz",
+      "developerName": "rpd-odr",
+      "subtitle": "Jellyfin and Emby media player for Apple platforms.",
+      "iconURL": "https://raw.githubusercontent.com/rpd-odr/Plozz/main/App/PlozziOS/Assets.xcassets/AppIcon.appiconset/PlozzAppIcon.png",
+      "assetRegex": "Plozz-.*\\.ipa$"
+    },
+    {
+      "name": "Mozz",
+      "repo": "rpd-odr/Mozz",
+      "bundleIdentifier": "com.thatcube.Mozz",
+      "developerName": "rpd-odr",
+      "subtitle": "Free and open-source music player for Plex, Jellyfin, and Subsonic.",
+      "iconURL": "https://raw.githubusercontent.com/rpd-odr/Mozz/main/App/Mozz/Assets.xcassets/AppIcon.appiconset/icon-1024.png",
+      "assetRegex": "Mozz-.*\\.ipa$"
     }
   ]
 }
