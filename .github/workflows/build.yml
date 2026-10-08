@@ -1,4 +1,5 @@
 name: Build AltStore Repo
+# Automatic release feed refresh
 
 on:
   schedule:
