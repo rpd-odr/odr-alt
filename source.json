@@ -51,7 +51,7 @@
       "developerName": "rpd-odr",
       "subtitle": "Free and open-source music player for Plex, Jellyfin, and Subsonic.",
       "version": "2026.9.21",
-      "versionDate": "2026-10-08T11:54:50Z",
+      "versionDate": "2026-10-08T18:23:55Z",
       "versionDescription": "Unsigned iOS IPA built automatically from the upstream Mozz source.\n\n- iOS/iPadOS build only\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n",
       "downloadURL": "https://github.com/rpd-odr/Mozz/releases/download/v2026.9.21/Mozz-2026.9.21.ipa",
       "iconURL": "https://raw.githubusercontent.com/rpd-odr/Mozz/main/App/Mozz/Assets.xcassets/AppIcon.appiconset/icon-1024.png",
@@ -59,7 +59,7 @@
       "versions": [
         {
           "version": "2026.9.21",
-          "date": "2026-10-08T11:54:50Z",
+          "date": "2026-10-08T18:23:55Z",
           "downloadURL": "https://github.com/rpd-odr/Mozz/releases/download/v2026.9.21/Mozz-2026.9.21.ipa",
           "size": 14338129,
           "localizedDescription": "Unsigned iOS IPA built automatically from the upstream Mozz source.\n\n- iOS/iPadOS build only\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n"
@@ -88,7 +88,7 @@
       "title": "Mozz 2026.9.21",
       "identifier": "com.thatcube.Mozz",
       "caption": "Unsigned iOS IPA built automatically from the upstream Mozz source.\n\n- iOS/iPadOS build only\n- No Apple signing credentials are included\n- Install with AltStore/SideStore or sign with your own certificate\n",
-      "date": "2026-10-08T11:54:50Z",
+      "date": "2026-10-08T18:23:55Z",
       "link": "https://github.com/rpd-odr/Mozz/releases/download/v2026.9.21/Mozz-2026.9.21.ipa",
       "notify": true
     }
