@@ -1,5 +1,5 @@
 name: Build AltStore Repo
-# Automatic release feed refresh
+# Refresh the feed after upstream IPA releases
 
 on:
   schedule:
